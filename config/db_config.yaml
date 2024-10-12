@@ -1,0 +1,12 @@
+
+databases:
+  - dbid: db1
+    dialect: mysql+pymysql
+    url_env_var: DB1_URL
+    username_env_var: DB1_USERNAME
+    password_env_var: DB1_PASSWORD
+  - dbid: db2
+    dialect: postgresql+psycopg2
+    url_env_var: DB2_URL
+    username_env_var: DB2_USERNAME
+    password_env_var: DB2_PASSWORD

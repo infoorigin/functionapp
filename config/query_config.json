@@ -1,0 +1,31 @@
+{
+    "db1": {
+      "queries": [
+        {
+          "key": "getUserById",
+          "desc": "Get user details by ID",
+          "sql": "SELECT id, name, email FROM users WHERE id = :id"
+        },
+        {
+          "key": "getAllUsers",
+          "desc": "Get all users",
+          "sql": "SELECT id, name, email FROM users"
+        }
+      ]
+    },
+    "db2": {
+      "queries": [
+        {
+          "key": "getOrdersByDate",
+          "desc": "Get orders by date",
+          "sql": "SELECT order_id, customer_id, order_date FROM orders WHERE order_date = :order_date"
+        },
+        {
+          "key": "getAllOrders",
+          "desc": "Get all orders",
+          "sql": "SELECT order_id, customer_id, order_date FROM orders"
+        }
+      ]
+    }
+  }
+  

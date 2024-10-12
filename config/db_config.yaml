@@ -1,12 +1,15 @@
-
+# config/db_config.yaml
 databases:
   - dbid: db1
+    use_odbc: false
     dialect: mysql+pymysql
-    url_env_var: DB1_URL
+    host_env_var: DB1_HOST
+    port_env_var: DB1_PORT
+    database_env_var: DB1_DATABASE
     username_env_var: DB1_USERNAME
     password_env_var: DB1_PASSWORD
+
   - dbid: db2
-    dialect: postgresql+psycopg2
-    url_env_var: DB2_URL
-    username_env_var: DB2_USERNAME
-    password_env_var: DB2_PASSWORD
+    use_odbc: true
+    dialect: mssql+pyodbc
+    odbc_connection_string_env_var: DB2_ODBC_CONN_STR

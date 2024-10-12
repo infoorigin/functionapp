@@ -5,6 +5,7 @@ import yaml
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.pool import QueuePool
+import urllib.parse
 
 class DBClient:
     _instances = {}
@@ -35,31 +36,59 @@ class DBClient:
         for db_config in db_configs:
             if db_config['dbid'] == self.dbid:
                 self.db_config = db_config
-                # Load actual values from environment variables
-                self.db_config['url'] = os.environ.get(self.db_config['url_env_var'])
-                self.db_config['username'] = os.environ.get(self.db_config['username_env_var'])
-                self.db_config['password'] = os.environ.get(self.db_config['password_env_var'])
-                if not all([self.db_config['url'], self.db_config['username'], self.db_config['password']]):
-                    raise ValueError(f"Environment variables for database '{self.dbid}' are not properly set.")
+                self.use_odbc = db_config.get('use_odbc', False)
+                if self.use_odbc:
+                    odbc_conn_str_env_var = db_config.get('odbc_connection_string_env_var')
+                    if odbc_conn_str_env_var:
+                        self.db_config['odbc_connection_string'] = os.environ.get(odbc_conn_str_env_var)
+                        if not self.db_config['odbc_connection_string']:
+                            raise ValueError(f"Environment variable '{odbc_conn_str_env_var}' for database '{self.dbid}' is not set.")
+                    else:
+                        raise ValueError(f"'odbc_connection_string_env_var' is not specified for database '{self.dbid}'.")
+                else:
+                    # Load connection parameters from environment variables
+                    self.db_config['host'] = os.environ.get(db_config.get('host_env_var'))
+                    self.db_config['port'] = os.environ.get(db_config.get('port_env_var'))
+                    self.db_config['database'] = os.environ.get(db_config.get('database_env_var'))
+                    self.db_config['username'] = os.environ.get(db_config.get('username_env_var'))
+                    self.db_config['password'] = os.environ.get(db_config.get('password_env_var'))
+                    if not all([
+                        self.db_config['host'],
+                        self.db_config['port'],
+                        self.db_config['database'],
+                        self.db_config['username'],
+                        self.db_config['password']
+                    ]):
+                        missing_vars = [key for key in ['host', 'port', 'database', 'username', 'password'] if not self.db_config.get(key)]
+                        raise ValueError(f"Missing environment variables for database '{self.dbid}': {', '.join(missing_vars)}")
                 break
         else:
             raise ValueError(f"Database configuration for '{self.dbid}' not found.")
 
     def create_engine(self):
         dialect = self.db_config['dialect']
-        url = self.db_config['url']
-        username = self.db_config['username']
-        password = self.db_config['password']
 
-        # Remove 'jdbc:' prefix if present (from Java configurations)
-        if url.startswith('jdbc:'):
-            url = url[5:]
+        if self.use_odbc:
+            # ODBC Connection
+            odbc_connection_string = self.db_config['odbc_connection_string']
+            # Encode the ODBC connection string
+            params = urllib.parse.quote_plus(odbc_connection_string)
+            # Construct the database URL for SQLAlchemy
+            db_url = f"{dialect}:///?odbc_connect={params}"
+            self.engine = create_engine(db_url, poolclass=QueuePool)
+            logging.info(f"Database engine created for '{self.dbid}' using ODBC.")
+        else:
+            # Direct Driver Connection
+            username = self.db_config['username']
+            password = self.db_config['password']
+            host = self.db_config['host']
+            port = self.db_config['port']
+            database = self.db_config['database']
 
-        # Construct the database URL for SQLAlchemy
-        db_url = f"{dialect}://{username}:{password}@{url}"
-
-        self.engine = create_engine(db_url, poolclass=QueuePool)
-        logging.info(f"Database engine created for '{self.dbid}'.")
+            # Construct the database URL for SQLAlchemy
+            db_url = f"{dialect}://{username}:{password}@{host}:{port}/{database}"
+            self.engine = create_engine(db_url, poolclass=QueuePool)
+            logging.info(f"Database engine created for '{self.dbid}' using direct driver.")
 
     def execute_query(self, query, params=None):
         try:

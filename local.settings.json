@@ -1,9 +1,15 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "python",
-    "COUPA_API_KEY": "your_coupa_api_key",
-    "COUPA_BASE_URL": "https://api.coupa.com"
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+
+    "DB1_HOST": "your_db1_host",
+    "DB1_PORT": "your_db1_port",
+    "DB1_DATABASE": "your_db1_database",
+    "DB1_USERNAME": "your_db1_username",
+    "DB1_PASSWORD": "your_db1_password",
+
+    "DB2_ODBC_CONN_STR": "Driver={ODBC Driver 17 for SQL Server};Server=your_server;Database=your_db;UID=your_username;PWD=your_password;"
   }
 }

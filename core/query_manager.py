@@ -1,31 +1,33 @@
-# core/query_manager.py
+# shared_code/query_manager.py
 import json
-import os
 import threading
 import logging
 
 class QueryManager:
-    _instance = None
+    _instances = {}
     _lock = threading.Lock()
 
-    def __new__(cls):
+    def __new__(cls, query_config_path):
         with cls._lock:
-            if cls._instance is None:
-                cls._instance = super(QueryManager, cls).__new__(cls)
-        return cls._instance
+            if query_config_path not in cls._instances:
+                cls._instances[query_config_path] = super(QueryManager, cls).__new__(cls)
+        return cls._instances[query_config_path]
 
-    def __init__(self):
+    def __init__(self, query_config_path):
         if hasattr(self, 'initialized'):
             return
         self.initialized = True
         self.queries = {}
-        self.load_queries()
+        self.load_queries(query_config_path)
 
-    def load_queries(self):
-        config_path = os.path.join(os.path.dirname(__file__), '../config/query_config.json')
-        with open(config_path, 'r') as file:
-            self.queries = json.load(file)
-        logging.info("Query configurations loaded.")
+    def load_queries(self, query_config_path):
+        try:
+            with open(query_config_path, 'r') as file:
+                self.queries = json.load(file)
+            logging.info(f"Query configurations loaded from {query_config_path}.")
+        except Exception as e:
+            logging.error(f"Error loading query configurations: {e}")
+            raise
 
     def get_query(self, dbid, query_key):
         db_queries = self.queries.get(dbid, {}).get('queries', [])

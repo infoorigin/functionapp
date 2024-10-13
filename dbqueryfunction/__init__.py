@@ -2,11 +2,12 @@
 import azure.functions as func
 import logging
 import json
+import os
 from core.db_client import DBClient
 from core.query_manager import QueryManager
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Received request for database query execution.')
+    logging.info('Received request for database query execution in function1.')
 
     try:
         req_body = req.get_json()
@@ -23,7 +24,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("Missing 'dbid' or 'query_key' in request.", status_code=400)
 
     try:
-        query_manager = QueryManager()
+        # Get the path to the query_config.json specific to this function
+        query_config_path = os.path.join(os.path.dirname(__file__), 'query_config.json')
+
+        query_manager = QueryManager(query_config_path)
         sql = query_manager.get_query(dbid, query_key)
 
         db_client = DBClient(dbid=dbid)
@@ -50,3 +54,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=500,
             mimetype="application/json"
         )
+

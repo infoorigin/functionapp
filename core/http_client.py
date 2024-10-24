@@ -98,31 +98,28 @@ class HttpClient:
         """
         return await self.fetch_all(requests_list)
 
-
-# Example usage of the reusable HttpClient class
 if __name__ == "__main__":
-    # List of request configurations
-    requests_list = [
-        {
-            'id': 'Request 1',
-            'method': 'GET',
-            'url': 'https://api.example.com/data',
-            'params': {'page': 1}
-        },
-        {
-            'id': 'Request 2',
-            'method': 'POST',
-            'url': 'https://api.example.com/data',
-            'json': {'key': 'value'}
-        },
-        {
-            'id': 'Request 3',
-            'method': 'GET',
-            'url': 'https://api.example.com/data',
-            'params': {'start': 0, 'end': 100}
-        },
-        # Add more request configurations as needed
+    # Base URL with placeholders
+    base_url = "https://api.example.com/data?start={start}&end={end}"
+
+    # List of start/end dictionaries
+    ranges = [
+        {'start': 0, 'end': 100},
+        {'start': 101, 'end': 200},
+        {'start': 201, 'end': 300}
     ]
+
+    # Build the requests_list by formatting the URL with each range
+    requests_list = []
+    for idx, range_dict in enumerate(ranges, start=1):
+        formatted_url = base_url.format(**range_dict)
+        request_config = {
+            'id': f"Request {idx}",
+            'method': 'GET',
+            'url': formatted_url,
+            # You can also include additional params, headers, etc., if needed
+        }
+        requests_list.append(request_config)
 
     # Instantiate the HttpClient class
     client = HttpClient(retries=3, timeout=10)
@@ -130,3 +127,35 @@ if __name__ == "__main__":
     # Run the event loop to fetch data from all requests in parallel
     results = asyncio.run(client.get_parallel_data(requests_list))
     print(results)
+
+# Example usage of the reusable HttpClient class
+# if __name__ == "__main__":
+#     # List of request configurations
+#     requests_list = [
+#         {
+#             'id': 'Request 1',
+#             'method': 'GET',
+#             'url': 'https://api.example.com/data',
+#             'params': {'page': 1}
+#         },
+#         {
+#             'id': 'Request 2',
+#             'method': 'POST',
+#             'url': 'https://api.example.com/data',
+#             'json': {'key': 'value'}
+#         },
+#         {
+#             'id': 'Request 3',
+#             'method': 'GET',
+#             'url': 'https://api.example.com/data',
+#             'params': {'start': 0, 'end': 100}
+#         },
+#         # Add more request configurations as needed
+#     ]
+
+#     # Instantiate the HttpClient class
+#     client = HttpClient(retries=3, timeout=10)
+
+#     # Run the event loop to fetch data from all requests in parallel
+#     results = asyncio.run(client.get_parallel_data(requests_list))
+#     print(results)

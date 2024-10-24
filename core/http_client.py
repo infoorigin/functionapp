@@ -12,7 +12,21 @@ class HttpClient:
         """
         self.retries = retries
         self.timeout = timeout
-
+        
+    def create_batches(total_records, batch_size):
+        # List to hold the batch dictionaries
+        batches = []
+        
+        # Loop through the total_records with the given batch size
+        for offset in range(0, total_records, batch_size):
+            batch = {
+                "limit": batch_size,
+                "offset": offset
+            }
+            batches.append(batch)
+        
+        return batches
+        
     async def fetch(self, client, request_config):
         """
         Fetch data for a single request configuration with retries and exception handling.

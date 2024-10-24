@@ -12,7 +12,16 @@ class HttpClient:
         """
         self.retries = retries
         self.timeout = timeout
+
+    def create_input_data_items(batches):
+        # Map each batch to an InputDataItem using lambda
+        input_data_items = list(map(lambda batch: InputDataItem(
+            placeholders={"limit": batch["limit"], "offset": batch["offset"]}, 
+            params={"lookup_id": "19"}
+        ), batches))
         
+        return input_data_items
+    
     def create_batches(total_records, batch_size):
         # List to hold the batch dictionaries
         batches = []
